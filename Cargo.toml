@@ -1,7 +1,14 @@
 [package]
-name = "LED-CLI-Controller"
+name = "led-cli"
 version = "0.1.0"
 edition = "2021"
+authors = ["Leo Seeger"]
+license = "MIT OR Apache-2.0"
+description = "A tool for controlling LED lights over mqqt"
+homepage = "https://github.com/leoseg/LED-CLI-Controller"
+repository = "https://github.com/leoseg/LED-CLI-Controller"
+keywords = ["cli", "search", "mcu"]
+categories = ["command-line-utilities"]
 
 [dependencies]
 clap = { version = "4.5.21", features = ["derive"] }
