@@ -1,16 +1,9 @@
-mod cli;
+mod commands;
 mod mqttclient;
-mod command;
 
 use clap::Parser;
-use crate::cli::CliArgs;
-
-
-
+use crate::commands::CommandCLI;
 fn main() {
-    let args = CliArgs::parse();
-    let command = command::get_command(args.command_name.as_str());
-    command.execute(args.command_args).unwrap_or_else(|err| {
-        println!("Error executing command: {}", err);
-    });
+    let mut cli_args = CommandCLI::parse();
+    cli_args.execute();
 }
