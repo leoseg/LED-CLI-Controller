@@ -2,7 +2,7 @@ use std::fs;
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
-use rumqttc::{MqttOptions, Client, QoS};
+use rumqttc::{MqttOptions, Client, QoS, Event, Packet};
 use std::time::Duration;
 
 #[derive(Debug)]
@@ -11,7 +11,7 @@ struct ClientConfig {
     port: u16,
 }
 
-pub fn set_mqtt_config(host: &str, port: &str){
+pub fn set_mqtt_config(host: &str, port: u16){
     let home = std::env::var("HOME").unwrap();
     let path = Path::new(&home).join(".CLI_MQTT");
     fs::create_dir_all(&path).unwrap_or_else(|err| {
@@ -44,15 +44,30 @@ fn get_mqtt_config() -> ClientConfig {
     config
 }
 
-pub(crate) fn start_mqqt_client() {
+pub fn send_message(message:&str) {
     let config = get_mqtt_config();
     println!("Starting MQTT client with config: {:?}", config);
     let mut mqttoptions = MqttOptions::new("cli-app", config.host, config.port);
     mqttoptions.set_keep_alive(Duration::from_secs(10));
     
-    let (client, _connection) = Client::new(mqttoptions, 10);
-    client.publish("hello/world", QoS::AtLeastOnce,  false,"Hello world".to_string()).unwrap();
-    println!("Client started")
-    
+    let (client, mut connection) = Client::new(mqttoptions, 10);
+    let connection_thread =std::thread::spawn(move || {
+        for notification in connection.iter() {
+             match notification {
+                Ok(Event::Incoming(Packet::PubAck(_))) => {
+                    println!("Message published");
+                    break;
+                }
+                Err(e) => {
+                    println!("Error: {:?}", e);
+                    break;
+                }
+                _ => {}
+            }
+        }
+    });
+    client.publish("led", QoS::AtLeastOnce,  false,message).unwrap();
+    connection_thread.join().unwrap();
 }
+
 
