@@ -22,7 +22,13 @@ enum Commands {
         color: Color
     },
 
-    Off,
+    Off {
+        #[arg(long, default_value_t = 1, value_parser = clap::value_parser!(u8).range(1..=100))]
+        percentage: u8,
+
+        #[arg(long, default_value = "white")]
+        color: Color
+    },
 
     Set {
         
@@ -59,7 +65,7 @@ impl CommandCLI {
                 send_message(&message);
                 println!("Turning on LED with color {:?} and percentage {}", color, percentage);
             }
-            Commands::Off => {
+            Commands::Off {percentage, color} => {
                 let message = serde_json::to_string(&self.command).expect("Error serializing message");
                 send_message(&message);
                 println!("Turning off LED");
