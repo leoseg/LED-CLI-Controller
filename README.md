@@ -16,3 +16,6 @@ in json format like this:
     "percentage": 100
 }
 ```
+
+### Broker
+I used rumqttd to run a broker on my local machine, the configuration is in the `rumqttd.toml` file in `broker-config` folder.
