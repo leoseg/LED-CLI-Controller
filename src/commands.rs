@@ -16,7 +16,9 @@ enum Commands {
 
     On(OnCommand),
 
-    Rotate(RotateCommand),
+    Rotate(RotateOrBlinkCommand),
+
+    Blink(RotateOrBlinkCommand),
 
     Off,
 
@@ -41,7 +43,7 @@ struct OnCommand {
 }
 
 #[derive(Debug, Parser,Serialize)]
-struct RotateCommand{
+struct RotateOrBlinkCommand {
 
     #[arg(long, default_value_t = 50, value_parser = clap::value_parser!(u8).range(1..=100))]
     percentage: u8,
@@ -52,6 +54,8 @@ struct RotateCommand{
     #[arg(long, default_value_t = 50, value_parser = clap::value_parser!(u8).range(1..=100))]
     speed: u8,
 }
+
+
 
 #[derive(ValueEnum, Debug, Clone,Serialize)]
 enum CommandName {
@@ -93,7 +97,13 @@ impl CommandCLI {
                 => {
                 let message = serde_json::to_string(&self.command).expect("Error serializing message");
                 send_message(&message);
-                println!("Turning on LED with color {:?} and percentage {} and speed {}", on_command.color, on_command.percentage, on_command.speed);
+                println!("Rotating LED with color {:?} and percentage {} and speed {}", on_command.color, on_command.percentage, on_command.speed);
+            }
+            Commands::Blink(on_command)
+                => {
+                let message = serde_json::to_string(&self.command).expect("Error serializing message");
+                send_message(&message);
+                println!("Blinking LED with color {:?} and percentage {} and speed {}", on_command.color, on_command.percentage, on_command.speed);
             }
         }
     }
