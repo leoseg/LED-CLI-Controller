@@ -67,6 +67,7 @@ pub fn send_message(message:&str) {
         }
     });
     client.publish("led", QoS::AtLeastOnce,  false,message).unwrap();
+    println!("{}", message);
     connection_thread.join().unwrap();
 }
 

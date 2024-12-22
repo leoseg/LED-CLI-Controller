@@ -1,4 +1,4 @@
-use clap::{Parser, ValueEnum,Subcommand};
+use clap::{Parser, ValueEnum, Subcommand};
 use serde::Serialize;
 use crate::mqttclient::{send_message, set_mqtt_config};
 
@@ -14,21 +14,11 @@ pub struct CommandCLI {
 #[serde(tag = "led_state")]
 enum Commands {
 
-    On {
-        #[arg(long, default_value_t = 50, value_parser = clap::value_parser!(u8).range(1..=100))]
-        percentage: u8,
-        
-        #[arg(long, default_value = "white")]
-        color: Color
-    },
+    On(OnCommand),
 
-    Off {
-        #[arg(long, default_value_t = 1, value_parser = clap::value_parser!(u8).range(1..=100))]
-        percentage: u8,
+    Rotate(RotateCommand),
 
-        #[arg(long, default_value = "white")]
-        color: Color
-    },
+    Off,
 
     Set {
         
@@ -40,9 +30,33 @@ enum Commands {
     }
 }
 
+#[derive(Debug, Parser, Serialize)]
+struct OnCommand {
+
+    #[arg(long, default_value_t = 50, value_parser = clap::value_parser!(u8).range(1..=100))]
+    percentage: u8,
+
+    #[arg(long, default_value = "white")]
+    color: String,
+}
+
+#[derive(Debug, Parser,Serialize)]
+struct RotateCommand{
+
+    #[arg(long, default_value_t = 50, value_parser = clap::value_parser!(u8).range(1..=100))]
+    percentage: u8,
+
+    #[arg(long, default_value = "white")]
+    color: String,
+
+    #[arg(long, default_value_t = 50, value_parser = clap::value_parser!(u8).range(1..=100))]
+    speed: u8,
+}
+
 #[derive(ValueEnum, Debug, Clone,Serialize)]
 enum CommandName {
     On,
+    Rotate,
     Off,
     Set
 }
@@ -53,6 +67,7 @@ pub enum Color {
     Red,
     Green,
     Blue,
+    Purple,
     Yellow,
 }
 
@@ -60,12 +75,12 @@ impl CommandCLI {
     
     pub fn execute(& mut self) {
         match &self.command {
-            Commands::On { percentage, color } => {
+            Commands::On(on_command) => {
                 let message = serde_json::to_string(&self.command).expect("Error serializing message");
                 send_message(&message);
-                println!("Turning on LED with color {:?} and percentage {}", color, percentage);
+                println!("Turning on LED with color {:?} and percentage {}", on_command.color, on_command.percentage);
             }
-            Commands::Off {percentage, color} => {
+            Commands::Off {} => {
                 let message = serde_json::to_string(&self.command).expect("Error serializing message");
                 send_message(&message);
                 println!("Turning off LED");
@@ -73,6 +88,12 @@ impl CommandCLI {
             Commands::Set { port, mq_host } => {
                 set_mqtt_config(mq_host, *port);
                 println!("Setting with port {} and host {}", port, mq_host);
+            }
+            Commands::Rotate(on_command)
+                => {
+                let message = serde_json::to_string(&self.command).expect("Error serializing message");
+                send_message(&message);
+                println!("Turning on LED with color {:?} and percentage {} and speed {}", on_command.color, on_command.percentage, on_command.speed);
             }
         }
     }
