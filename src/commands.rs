@@ -29,6 +29,12 @@ enum Commands {
         
         #[arg(short, default_value = "localhost")]
         mq_host: String,
+
+        #[arg(short)]
+        username: Option<String>,
+
+        #[arg(short)]
+        password: Option<String>
     }
 }
 
@@ -89,8 +95,8 @@ impl CommandCLI {
                 send_message(&message);
                 println!("Turning off LED");
             }
-            Commands::Set { port, mq_host } => {
-                set_mqtt_config(mq_host, *port);
+            Commands::Set { port, mq_host, username, password} => {
+                set_mqtt_config(mq_host, *port, username.as_deref(), password.as_deref());
                 println!("Setting with port {} and host {}", port, mq_host);
             }
             Commands::Rotate(on_command)
